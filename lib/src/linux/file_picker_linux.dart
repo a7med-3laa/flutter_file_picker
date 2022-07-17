@@ -16,6 +16,7 @@ class FilePickerLinux extends FilePicker {
     bool allowCompression = true,
     bool allowMultiple = false,
     bool withData = false,
+    bool isLocalOnly = false,
     bool withReadStream = false,
     bool lockParentWindow = false,
   }) async {

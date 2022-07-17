@@ -13,6 +13,7 @@ import android.os.Looper;
 import android.os.Parcelable;
 import android.os.Message;
 import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
@@ -39,6 +40,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
     private String type;
     private String[] allowedExtensions;
     private EventChannel.EventSink eventSink;
+    private boolean isLocalOnly;
 
     public FilePickerDelegate(final Activity activity) {
         this(
@@ -221,8 +223,15 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
             intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         } else {
             if (type.equals("image/*")) {
-                intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            } else {
+                intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            }
+            else if (type.equals("document/*")&&Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    intent = new Intent(Intent.ACTION_OPEN_DOCUMENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                type="*/*";
+
+            }
+            else {
                 intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
             }
@@ -232,6 +241,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
             intent.setType(this.type);
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, this.isMultipleSelection);
             intent.putExtra("multi-pick", this.isMultipleSelection);
+            intent.putExtra(Intent.EXTRA_LOCAL_ONLY, isLocalOnly);
 
             if (type.contains(",")) {
                 allowedExtensions = type.split(",");
@@ -251,7 +261,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
     }
 
     @SuppressWarnings("deprecation")
-    public void startFileExplorer(final String type, final boolean isMultipleSelection, final boolean withData, final String[] allowedExtensions, final MethodChannel.Result result) {
+    public void startFileExplorer(final String type, final boolean isMultipleSelection, final boolean isLocalOnly, final boolean withData, final String[] allowedExtensions, final MethodChannel.Result result) {
 
         if (!this.setPendingMethodCallAndResult(result)) {
             finishWithAlreadyActiveError(result);
@@ -262,6 +272,7 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
         this.isMultipleSelection = isMultipleSelection;
         this.loadDataToMemory = withData;
         this.allowedExtensions = allowedExtensions;
+        this.isLocalOnly=isLocalOnly;
 
         if (!this.permissionManager.isPermissionGranted(Manifest.permission.READ_EXTERNAL_STORAGE)) {
             this.permissionManager.askForPermission(Manifest.permission.READ_EXTERNAL_STORAGE, REQUEST_CODE);

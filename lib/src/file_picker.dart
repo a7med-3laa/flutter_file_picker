@@ -18,6 +18,7 @@ enum FileType {
   video,
   audio,
   custom,
+  document,
 }
 
 enum FilePickerStatus {
@@ -108,6 +109,7 @@ abstract class FilePicker extends PlatformInterface {
     bool allowMultiple = false,
     bool withData = false,
     bool withReadStream = false,
+    bool isLocalOnly = false,
     bool lockParentWindow = false,
   }) async =>
       throw UnimplementedError('pickFiles() has not been implemented.');

@@ -31,6 +31,7 @@ class FilePickerIO extends FilePicker {
     bool? allowCompression = true,
     bool allowMultiple = false,
     bool? withData = false,
+    bool isLocalOnly = false,
     bool? withReadStream = false,
     bool lockParentWindow = false,
   }) =>
@@ -41,6 +42,7 @@ class FilePickerIO extends FilePicker {
         allowedExtensions,
         onFileLoading,
         withData,
+        isLocalOnly,
         withReadStream,
       );
 
@@ -72,10 +74,12 @@ class FilePickerIO extends FilePicker {
     List<String>? allowedExtensions,
     Function(FilePickerStatus)? onFileLoading,
     bool? withData,
+    bool? isLocalOnly,
     bool? withReadStream,
   ) async {
     final String type = describeEnum(fileType);
-    if (type != 'custom' && (allowedExtensions?.isNotEmpty ?? false)) {
+    if ((type != 'custom' && type != 'document') &&
+        (allowedExtensions?.isNotEmpty ?? false)) {
       throw Exception(
           'You are setting a type [$fileType]. Custom extension filters are only allowed with FileType.custom, please change it or remove filters.');
     }
@@ -95,6 +99,7 @@ class FilePickerIO extends FilePicker {
         'allowedExtensions': allowedExtensions,
         'allowCompression': allowCompression,
         'withData': withData,
+        "isLocalOnly": isLocalOnly
       });
 
       if (result == null) {

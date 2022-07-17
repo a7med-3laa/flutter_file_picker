@@ -113,6 +113,7 @@ public class FilePickerPlugin implements MethodChannel.MethodCallHandler, Flutte
     private static String fileType;
     private static boolean isMultipleSelection = false;
     private static boolean withData = false;
+    private static boolean isLocalOnly = false;
 
     /**
      * Plugin registration.
@@ -162,13 +163,15 @@ public class FilePickerPlugin implements MethodChannel.MethodCallHandler, Flutte
         } else if (fileType != "dir") {
             isMultipleSelection = (boolean) arguments.get("allowMultipleSelection");
             withData = (boolean) arguments.get("withData");
+            isLocalOnly = (boolean) arguments.get("isLocalOnly");
+
             allowedExtensions = FileUtils.getMimeTypes((ArrayList<String>) arguments.get("allowedExtensions"));
         }
 
         if (call.method != null && call.method.equals("custom") && (allowedExtensions == null || allowedExtensions.length == 0)) {
             result.error(TAG, "Unsupported filter. Make sure that you are only using the extension without the dot, (ie., jpg instead of .jpg). This could also have happened because you are using an unsupported file extension.  If the problem persists, you may want to consider using FileType.all instead.", null);
         } else {
-            this.delegate.startFileExplorer(fileType, isMultipleSelection, withData, allowedExtensions, result);
+            this.delegate.startFileExplorer(fileType, isMultipleSelection,isLocalOnly, withData, allowedExtensions, result);
         }
 
     }
@@ -178,6 +181,8 @@ public class FilePickerPlugin implements MethodChannel.MethodCallHandler, Flutte
         switch (type) {
             case "audio":
                 return "audio/*";
+            case "document":
+                return "document/*";
             case "image":
                 return "image/*";
             case "video":

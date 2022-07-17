@@ -45,6 +45,7 @@ class FilePickerWeb extends FilePicker {
     bool allowCompression = true,
     bool withData = true,
     bool withReadStream = false,
+    bool isLocalOnly = false,
     bool lockParentWindow = false,
   }) async {
     if (type != FileType.custom && (allowedExtensions?.isNotEmpty ?? false)) {
@@ -172,6 +173,9 @@ class FilePickerWeb extends FilePicker {
       case FileType.custom:
         return allowedExtensions!
             .fold('', (prev, next) => '${prev.isEmpty ? '' : '$prev,'} .$next');
+      case FileType.document:
+        return '';
+        break;
     }
   }
 
