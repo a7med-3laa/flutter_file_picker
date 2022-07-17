@@ -120,10 +120,13 @@ class FilePickerIO extends FilePicker {
       }
 
       return FilePickerResult(platformFiles);
-    } on PlatformException catch (e) {
+    } on PlatformException catch (e, stack) {
       print('[$_tag] Platform exception: $e');
+      debugPrintStack(stackTrace: stack);
+
       rethrow;
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrintStack(stackTrace: stack);
       print(
           '[$_tag] Unsupported operation. Method not found. The exception thrown was: $e');
       rethrow;

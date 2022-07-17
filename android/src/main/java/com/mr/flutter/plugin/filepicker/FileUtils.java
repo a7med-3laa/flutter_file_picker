@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -27,6 +28,7 @@ import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 public class FileUtils {
@@ -61,24 +63,55 @@ public class FileUtils {
         try {
 
             if (uri.getScheme().equals("content")) {
-                Cursor cursor = context.getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null);
+
+                Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
                 try {
                     if (cursor != null && cursor.moveToFirst()) {
-                        result = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
+                        Log.v(TAG, "getFileName: "+ Arrays.toString(cursor.getColumnNames()));
+
+                        String type = context.getContentResolver().getType(uri);
+                        String name=cursor.getString( cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                        Log.v(TAG, "getFileName: name"+name);
+
+                        String name2=cursor.getString( cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME));
+                        Log.v(TAG, "getFileName: name2"+name2);
+
+                        String title=cursor.getString( cursor.getColumnIndex(MediaStore.Files.FileColumns.TITLE));
+                        Log.v(TAG, "getFileName: title"+title);
+
+
+                        String ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
+
+                        if(name!=null) {
+                            return name+ '.' + ext;
+                        }
+                        if(name2!=null) {
+                            return name2+ '.' + ext;
+                        } if(title!=null) {
+                            return title+ '.' + ext;
+                        }
+                        return String.valueOf(new Random().nextInt(100000))+'.'+ext;
+//                        result = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
+//                        String type = context.getContentResolver().getType(uri);
+//                        if(type!=null){
+//                            result=result+type;
+//                        }
                     }
                 } finally {
-                    cursor.close();
+                    if (cursor != null) {
+                        cursor.close();
+                    }
                 }
             }
-            if (result == null) {
-                result = uri.getPath();
-                int cut = result.lastIndexOf('/');
-                if (cut != -1) {
-                    result = result.substring(cut + 1);
-                }
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
             }
         } catch (Exception ex){
-            Log.e(TAG, "Failed to handle file name: " + ex.toString());
+            String type = context.getContentResolver().getType(uri);
+            String ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
+            return String.valueOf(new Random().nextInt(100000))+'.'+ext;
         }
 
         return result;
@@ -128,7 +161,12 @@ public class FileUtils {
         FileOutputStream fos = null;
         final FileInfo.Builder fileInfo = new FileInfo.Builder();
         final String fileName = FileUtils.getFileName(uri, context);
-        final String path = context.getCacheDir().getAbsolutePath() + "/file_picker/" + (fileName != null ? fileName : new Random().nextInt(100000));
+        String type = context.getContentResolver().getType(uri);
+        Log.v(TAG, "openFileStream: type:"+type );
+        String ext=MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
+        Log.v(TAG, "openFileStream: ext:"+ext );
+
+        final String path = context.getCacheDir().getAbsolutePath() + "/file_picker/" + (fileName != null ? fileName : String.valueOf(new Random().nextInt(100000))+'.'+ext);
 
         final File file = new File(path);
 
@@ -152,6 +190,7 @@ public class FileUtils {
                     fos.getFD().sync();
                 }
             } catch (final Exception e) {
+                e.printStackTrace();
                 try {
                     fos.close();
                 } catch (final IOException | NullPointerException ex) {

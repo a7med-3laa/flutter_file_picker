@@ -81,14 +81,14 @@ public class FilePickerDelegate implements PluginRegistry.ActivityResultListener
     }
 
     private FileInfo parseUri(Intent intent, Uri uri) {
-        takePersistableUriPermission(intent, uri);
-        String path = UriUtils.getPath(activity, uri);
-        if (path != null) {
-            File f = new File(path);
-            return new FileInfo(path, f.getName(), uri, f.length(), null);
-        } else {
+//        takePersistableUriPermission(intent, uri);
+//        String path = UriUtils.getPath(activity, uri);
+//        if (path != null) {
+//            File f = new File(path);
+//            return new FileInfo(path, f.getName(), uri, f.length(), null);
+//        } else {
             return FileUtils.openFileStream(activity, uri, loadDataToMemory);
-        }
+//        }
     }
 
     @Override
